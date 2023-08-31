@@ -17,7 +17,7 @@ def rosen2D(x1, x2):
 def cantileverBeamArea(x):
     w = x[0]
     t = x[1]
-    return 4*t*(w-t)
+    return 4*t/100*(w/100-t/100)
 
 def rosen_der(x):
     xm = x[1:-1]
@@ -53,41 +53,41 @@ E = 21*10**4
 def J(x):
     w = float(x[0])
     t = float(x[1])
-    return 1/12*(w**4 - (w-2*t)**4) 
+    return 1/12*(w**4 - (w-2*t)**4)
 
 def Q(x):
     w = float(x[0])
     t = float(x[1])
-    return 1/8 * w**3 - 1/8*(w-2*t)**3 - 90
+    return 1/8 * w**3 - 1/8*(w-2*t)**3 
 
 def maxNormal(x):
     w = float(x[0])
     t = float(x[1])
     J_ = J(x)
     sig = P*L*w/(2*J_)
-    return P*L*w/(2*J_) - 165
+    return (P*L*w/(2*J_) - 165)/165
 
 def maxShear(x):
     w = float(x[0])
     t = float(x[1])
-    return P*Q(x) / (2*J(x)*t) - 90
+    return (P*Q(x) / (2*J(x)*t) - 90)/90
 
 def maxDeflection(x):
     w = float(x[0])
     t = float(x[1])
     maxDef = P*L**3/(3*E*J(x))
     J_val = J(x)
-    return P*L**3/(3*E*J(x)) - 10
+    return (P*L**3/(3*E*J(x)) - 10)/1000
 
 def dim_relation(x):
     w = float(x[0])
     t = float(x[1])
-    return w - 8*t
+    return (w - 8*t)/100
 
 def dim_relation2(x):
     w = float(x[0])
     t = float(x[1])
-    return 2*t-w
+    return (2*t-w)/100
 
 ineq_Max_Normal = {'type': 'ineq', 
                    'fun' :maxNormal
@@ -135,18 +135,20 @@ eq_cons = {'type': 'eq',
 # plt.show()
 
 x0 = np.array([60, 10])
-A0 = cantileverBeamArea(x0)
-J_value = J(x0)
-Q_value = Q(x0)
-Sigma = maxNormal(x0) + 165
-Tau = maxShear(x0) + 90
-q = maxDeflection(x0) + 10
+x1 = np.array([200, 90])
+A0 = cantileverBeamArea(x1)
+J_value = J(x1)
+Q_value = Q(x1)
+Sigma = maxNormal(x1) + 1
+Tau = maxShear(x0) + 1
+q = maxDeflection(x0) + 10/1000
+dr2 = dim_relation([200,1])
 rel = dim_relation(x0)
 
 print (Sigma, Tau, q)
 
-bounds = Bounds([10, 1], [200, 400])
-res = minimize(rosen, x0, method='SLSQP', jac='2-point', #
+bounds = Bounds([10, 1], [200, 100])
+res = minimize(cantileverBeamArea, x0, method='SLSQP', jac='3-point', #
                 constraints=[ineq_Max_Normal, ineq_max_Shear, ineq_max_Deflection, ineq_dim_relation, ineq_dim_relation2], #
                 options={'ftol': 1e-9, 'disp': True}, #
                bounds=bounds)
